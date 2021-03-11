@@ -1,37 +1,69 @@
-## Welcome to GitHub Pages
+## En este documento se adjunta el informe perteneciente a esta practica
+Dado que codigo como tal no se ha desarrollado, adjuntare, la parte referente al index.js donde se implementa la funcionalidad. El codigo referente al action.yml del repo original. Y finalmente el action del repo para comprobar el funcionamiento de la action
 
-You can use the [editor on GitHub](https://github.com/ChristianTorresGonzalez/PL-Practica2-hello_action_jekyll_report/edit/master/docs/index.md) to maintain and preview the content for your website in Markdown files.
+### Codigo helloWorld.js
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+```
+    name: 'Hello World'
+        description: 'Creacion de actions usando codigo de Hello World'
+    inputs:
+        who-to-greet:  # id of input
+            description: 'Who to greet'
+            required: true
+            default: 'World'
+    outputs:
+        time: # id of output
+            description: 'The time we greeted you'
+    runs:
+        using: 'node12'
+        main: 'index.js'
 
-### Markdown
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+### Action.yml de repo base
 
-### Jekyll Themes
+```
+    'use strict'
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/ChristianTorresGonzalez/PL-Practica2-hello_action_jekyll_report/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+    const core = require('@actions/core');
+    const github = require('@actions/github');
 
-### Support or Contact
+    try {
+        const nombreUsuario = core.getInput('who-to-greet');
+        const time = (new Date()).toTimeString();
+        const payload = JSON.stringify(github.context.payload, undefined, 2)
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+        console.log(`Hello ${nombreUsuario}!`);
+        core.setOutput("time", time);
+        console.log(`The event payload: ${payload}`);
+    } catch (error) {
+        core.setFailed(error.message);
+    }
+
+```
+
+
+### Action.yml de repo de uso de la action
+
+```
+    name: Using hello world
+        on: [push]
+
+    jobs:
+        hello_world_job:
+            runs-on: ubuntu-latest
+            name: A job to say hello
+            steps:
+            # To use this repository's private action, you must check out the repository
+            - name: Checkout
+                uses: actions/checkout@v2
+            - name: Hello world action step
+                uses: ULL-ESIT-PL-2021/hello-js-action-ChristianTorresGonzalez@v6
+                id: hello
+                with:
+                who-to-greet: 'Christian Torres Gonzalez'
+            # Use the output from the `hello` step
+            - name: Get the output time
+                run: echo "The time was ${{ steps.hello.outputs.time }}"
+
+```
